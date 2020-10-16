@@ -1,0 +1,360 @@
+############################### Question 1 ##############################
+
+class BinarySearchTreeMap:
+
+    class Item:
+        def __init__(self, key, value=None):
+            self.key = key
+            self.value = value
+
+
+    class Node:
+        def __init__(self, item):
+            self.item = item
+            self.parent = None
+            self.left = None
+            self.right = None
+            
+            self.left_subtree_size = 0
+            self.right_subtree_size = 0
+
+        def num_children(self):
+            count = 0
+            if (self.left is not None):
+                count += 1
+            if (self.right is not None):
+                count += 1
+            return count
+
+        def disconnect(self):
+            self.item = None
+            self.parent = None
+            self.left = None
+            self.right = None
+
+            self.left_subtree_size = None
+            self.right_subtree_size = None
+
+
+    def __init__(self):
+        self.root = None
+        self.size = 0
+
+    def __len__(self):
+        return self.size
+
+    def is_empty(self):
+        return len(self) == 0
+
+
+    # raises exception if not found
+    def __getitem__(self, key):
+        node = self.find(key)
+        if (node is None):
+            raise KeyError(str(key) + " not found")
+        else:
+            return node.item.value
+
+    # returns None if not found
+    def find(self, key):
+        curr = self.root
+        while (curr is not None):
+            if (curr.item.key == key):
+                return curr
+            elif (curr.item.key > key):
+                curr = curr.left
+            else:  # (curr.item.key < key)
+                curr = curr.right
+        return None
+
+
+    # updates value if key already exists
+    def __setitem__(self, key, value):
+        node = self.find(key)
+        if (node is None):
+            self.insert(key, value)
+        else:
+            node.item.value = value
+
+    # assumes key not in tree
+    def insert(self, key, value=None):
+        item = BinarySearchTreeMap.Item(key, value)
+        new_node = BinarySearchTreeMap.Node(item)
+        if (self.is_empty()):
+            self.root = new_node
+            self.size = 1
+        else:
+            parent = self.root
+            if(key < self.root.item.key):
+                curr = self.root.left
+                parent.left_subtree_size += 1
+            else:
+                curr = self.root.right
+                parent.right_subtree_size += 1
+            while curr:
+                parent = curr
+                if (key < curr.item.key):
+                    curr.left_subtree_size += 1
+                    curr = curr.left
+                else:
+                    curr.right_subtree_size += 1
+                    curr = curr.right
+            if (key < parent.item.key):
+                parent.left = new_node
+            else:
+                parent.right = new_node
+            new_node.parent = parent
+            self.size += 1
+
+
+    # raises exception if key not in tree
+    def __delitem__(self, key):
+
+        node = None
+        root = self.root
+        while root:
+            if root.item.key == key:
+                node = root
+                break
+            elif root.item.key > key:
+                root.left_subtree_size -= 1
+                root = root.left
+            else:
+                root.right_subtree_size -= 1
+                root = root.right
+        if not node:
+            raise KeyError(str(key) + " is not found")
+        else:
+            self.delete_node(node)
+
+
+    # assumes key is in tree + returns value assosiated
+    def delete_node(self, node_to_delete):
+        item = node_to_delete.item
+        num_children = node_to_delete.num_children()
+
+        if (node_to_delete is self.root):
+            if (num_children == 0):
+                self.root = None
+                node_to_delete.disconnect()
+                self.size -= 1
+
+            elif (num_children == 1):
+                if (self.root.left is not None):
+                    self.root = self.root.left
+                else:
+                    self.root = self.root.right
+                self.root.parent = None
+                node_to_delete.disconnect()
+                self.size -= 1
+
+            else: #num_children == 2
+                max_of_left = self.subtree_max(node_to_delete.left)
+                node_to_delete.item = max_of_left.item
+                self.delete_node(max_of_left)
+
+        else:
+            if (num_children == 0):
+                parent = node_to_delete.parent
+                if (node_to_delete is parent.left):
+                    parent.left = None
+                else:
+                    parent.right = None
+
+                node_to_delete.disconnect()
+                self.size -= 1
+
+            elif (num_children == 1):
+                parent = node_to_delete.parent
+                if(node_to_delete.left is not None):
+                    child = node_to_delete.left
+                else:
+                    child = node_to_delete.right
+
+                child.parent = parent
+                if (node_to_delete is parent.left):
+                    parent.left = child
+                else:
+                    parent.right = child
+
+                node_to_delete.disconnect()
+                self.size -= 1
+
+            else: #num_children == 2
+                max_of_left = self.subtree_max(node_to_delete.left)
+                node_to_delete.item = max_of_left.item
+                self.delete_node(max_of_left)
+
+        return item
+
+    # assumes non empty subtree
+    def subtree_max(self, curr_root):
+        node = curr_root
+        while (node.right is not None):
+            node = node.right
+        return node
+
+
+    def inorder(self):
+        for node in self.subtree_inorder(self.root):
+            yield node
+
+    def subtree_inorder(self, curr_root):
+        if(curr_root is None):
+            pass
+        else:
+            yield from self.subtree_inorder(curr_root.left)
+            yield curr_root
+            yield from self.subtree_inorder(curr_root.right)
+
+    def __iter__(self):
+        for node in self.inorder():
+            yield node.item.key
+
+
+#QUESTION 5 CODE STARTS HERE
+    def get_ith_smallest(self,i):
+        root = self.root
+        if (root.left_subtree_size + root.right_subtree_size + 1)< i:
+            raise IndexError('invalid index: i out of range')
+        else:
+            return self.get_ith_smallest_helper_function((root, i))
+    
+    def get_ith_smallest_helper_function(self, root_item):
+        if (root_item[0].left_subtree_size + 1) < root_item[1]:
+            return self.get_ith_smallest_helper_function((root_item[0].right, root_item[1] - root_item[0].left_subtree_size - 1))
+
+        elif(root_item[0].left_subtree_size + 1) == root_item[1]:
+            return root_item[0].item.key
+
+        else:
+            return self.get_ith_smallest_helper_function((root_item[0].left, root_item[1]))
+         
+
+
+def main():
+    bst = BinarySearchTreeMap()
+    bst[7] = None
+    bst[5] = None
+    bst[1] = None
+    bst[14] = None
+    bst[10] = None
+    bst[3] = None
+    bst[9] = None
+    bst[13] = None
+    print(bst.get_ith_smallest(3)) #5
+    print(bst.get_ith_smallest(6)) #10
+    del bst[14]
+    del bst[5]
+    print(bst.get_ith_smallest(3))#7
+    print(bst.get_ith_smallest(6)) #13
+
+#main()
+
+############################### Question 2 ##############################
+
+from BinarySearchTreeMap import BinarySearchTreeMap
+
+#A
+def create_chain_bst(n):
+    binary_search_tree = BinarySearchTreeMap()
+    for key in range(1, n+1):
+        binary_search_tree.insert(key)
+    return binary_search_tree
+
+def main_a():
+    bst_a = create_chain_bst(7)
+    for node in bst_a:
+        print(node)
+    
+    return
+#main_a()
+
+
+
+#B
+def create_complete_bst(n):
+    binary_search_tree = BinarySearchTreeMap()
+    add_items(binary_search_tree, 1, n)
+    return binary_search_tree
+
+def add_items(bst, low, high): #recursive
+    if low > high:
+        return
+    else:
+        mid = (low + high) // 2
+        bst.insert(mid)
+        add_items(bst, low, mid - 1)
+        add_items(bst, mid + 1, high)
+        return bst
+
+def main_b():
+    bst_b = create_complete_bst(7)
+    for node in bst_b:
+        print(node)
+    return
+
+#main_b()
+    
+
+############################### Question 3 ##############################
+
+from BinarySearchTreeMap import BinarySearchTreeMap
+
+def restore_bst(prefix_lst):
+    curr_index = 0
+    size = len(prefix_lst)
+    bst = BinarySearchTreeMap.BinarySearchTreeMap()
+    bst.root = restore_bst_helper(None, prefix_lst, curr_index, prefix_lst[0], float("-infinity"), float("infinity"), size)
+    bst.size = size
+    return bst
+
+def restore_bst_helper(parent, prefix_lst, curr_index, key, low, high, size):
+    if curr_index >= size:
+        return None
+    else:
+        if (key > low) and (key < high):
+            item = BinarySearchTreeMap.BinarySearchTreeMap.Item(key)
+            root = BinarySearchTreeMap.BinarySearchTreeMap.Node(item)
+            root.parent = parent
+            curr_index += 1
+            if curr_index < size:
+                root.left = restore_bst_helper(root, prefix_lst, curr_index, prefix_lst[curr_index], low, key, size)
+                root.right = restore_bst_helper(root, prefix_lst, curr_index, prefix_lst[curr_index], key, high, size)
+            return root
+
+
+############################### Question 4 ##############################
+
+from BinarySearchTreeMap import BinarySearchTreeMap
+
+def find_min_abs_difference(bst):
+    inorder_lst = []
+    for i in bst:
+        inorder_lst.append(i)
+        
+    minimum_absolute_difference = float('inf') #positive infinity
+    
+    for i in range(len(inorder_lst)-1):
+        difference = abs(inorder_lst[i] - inorder_lst[i+1])
+        
+        if difference < minimum_absolute_difference:
+            minimum_absolute_difference = difference
+            
+    return minimum_absolute_difference
+
+
+def main():
+    bst=BinarySearchTreeMap()
+    bst[9]=None
+    bst[7]=None
+    bst[20]=None
+    bst[4]=None
+    bst[17]=None
+    bst[25]=None
+    bst[1]=None
+    bst[6]=None
+
+    return find_min_abs_difference(bst)
+
+#print(main())
