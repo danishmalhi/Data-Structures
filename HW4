@@ -1,0 +1,160 @@
+##################################### Question 1 ##################################
+
+#a
+def print_triangle(n):
+    if n == 0:
+        return
+    else:
+        print_triangle(n-1) ### if these two lines are switched, then
+        print(((n) * '*'))  ### triangle will be upside down
+
+#b
+def print_oposite_triangles(n):
+    if n == 0:
+        return
+    else:
+        print(((n) * '*'))
+        print_oposite_triangles(n-1)
+        print(((n) * '*'))
+
+#c
+def print_ruler(n):
+    if n == 1:
+        print('-')
+    else:
+        print_ruler(n-1)
+        print(n*'-')
+        print_ruler(n-1)
+        
+
+##################################### Question 2 ##################################
+
+def list_min(lst, low, high):
+    if low == high:
+        return lst[low]
+
+    else:
+        lst1 = list_min(lst, low + 1, high)
+        if lst[low] > lst1:
+            return lst1
+        elif lst[low] < lst1:
+            return lst[low]
+
+##################################### Question 3 ##################################
+
+#a
+def count_lowercase(s, low, high):
+    if low == high:
+        if ord(s[low]) <= 122 and ord(s[low]) >= 97:
+            return 1
+        else:
+            return 0
+        
+    else:
+        case = count_lowercase(s, low+1, high)
+        if ord(s[low]) <= 122 and ord(s[low]) >= 97:
+            return  (1 + case)
+        else:
+            return case
+
+#b
+def is_number_of_lowercase_even(s, low, high):
+    if low == high:
+        return False
+    if low == high - 1:
+        if ord(s[low]) <= 122 and ord(s[low]) >= 97 and ord(s[high]) <= 122 and ord(s[high]):
+            return True
+        
+        else:
+            return False
+        
+    else:
+        case = is_number_of_lowercase_even(s, low+1, high)
+        if case is True:
+            if ord(s[low]) <= 122 and ord(s[low]) >= 97:
+                return False
+            else:
+                return case
+            
+        if case is False:
+            if ord(s[low]) <= 122 and ord(s[low]) >= 97:
+                return True
+            else:
+                return case
+
+
+##################################### Question 4 ##################################
+
+def appearances(s, low, high):
+    if low>high:
+        return {}
+    else:
+        dict1={s[low]:1}
+        for i in range(low):
+            if s[low]==s[i]:
+                dict1[s[low]]+=1 #increase count
+        dict2=appearances(s,low+1,high) #recursivve call
+        return dict(dict1,**dict2)
+
+def main():
+    s="Hello"
+    print(appearances(s,0,len(s)-1))
+
+#main()
+
+
+##################################### Question 5 ##################################
+
+def split_by_sign(lst,low,high):
+    if low>=high:
+        return lst
+    else:
+        if lst[low]>=0 and lst[high]<0:
+            lst[low],lst[high]=lst[high],lst[low]
+            return split_by_sign(lst,low+1,high-1)
+            
+
+        elif lst[low]>=0 and lst[high]>=0:
+            return split_by_sign(lst,low,high-1)
+            
+
+        elif lst[low]<0 and lst[high]>=0:
+            return split_by_sign(lst,low+1,high-1)
+
+        elif lst[low]<0 and lst[high]<0:
+            return split_by_sign(lst,low+1,high)
+
+def main():
+    lst=[2, 2, -4, -1, -8]
+    print(split_by_sign(lst,0,len(lst)-1))
+#main()
+
+
+##################################### Question 6 ##################################
+
+def flat_list(nested_lst, low, high):
+    if low>high:
+        return []
+    else:
+        if isinstance(nested_lst[low],list):
+            return flat_list(nested_lst[low],0,len(nested_lst[low])-1)+flat_list(nested_lst,low+1,high)
+        else:
+            return[nested_lst[low]]+flat_list(nested_lst,low+1,high)
+def main():
+    nested_lst=[[1, 2], 3, [4, [5, 6, [7], 8]]]
+    print(flat_list(nested_lst,0,len(nested_lst)-1))
+#main()
+
+
+##################################### Question 7 ##################################
+
+def permutations(lst, low, high):
+    if low>=high:
+        return [[lst[low]]]
+    lst2=[]
+    for i in range(low,high+1):
+        lst[low],lst[i]=lst[i],lst[low] #SWAP
+        for j in permutations(lst, low+1, high):
+            lst2.append([lst[low]]+j)
+        lst[low],lst[i]=lst[i],lst[low]
+    return lst2
