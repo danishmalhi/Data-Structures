@@ -1,0 +1,315 @@
+#################################### Question 1 ###############################
+
+import DoublyLinkedList
+class LinkedQueue:
+    def __init__(self):
+        self.data = DoublyLinkedList.DoublyLinkedList()
+        self.size = 0
+
+    def __len__(self):
+        return self.size
+
+    def is_empty(self):
+        return self.size==0
+
+    def enqueue(self, elem):
+        self.data.add_last(elem)
+        self.size+=1
+
+    def dequeue (self):
+        if len(self.data)==0:
+            raise Exception("empty queue")
+        return self.data.delete_node(self.data.header.next)
+    
+    def first(self):
+        if len(self.data)==0:
+            raise Exception("empty queue")
+        return self.data.first_node().data
+        
+
+def main():
+    q=LinkedQueue()
+    print(q.is_empty())
+    for i in range (5):
+        q.enqueue(i)
+    for i in range (len(q)):
+        print(q.first())
+        print(q.dequeue())
+main()
+
+#################################### Question 2 ###############################
+
+class DoublyLinkedList:
+
+    
+    class Integer:
+        def __init__(self, num_str):
+            if num_str:
+                while num_str[0] == '0':
+                    num_str = num_str[1:]
+            self.data = DoublyLinkedList.DoublyLinkedList()
+            self.num_of_digits = len(num_str)
+            for i in range(self.num_of_digits):
+                self.data.add_last(num_str[i])
+
+        def __add__(self, other):
+            res = Integer('')
+            carry_over = 0
+            if self.num_of_digits > other.num_of_digits:
+                int_1 = copy.deepcopy(self)
+                int_2 = copy.deepcopy(other)
+            else:
+                int_1 = copy.deepcopy(other)
+                int_2 = copy.deepcopy(self)
+            for i in range(int_2.num_of_digits):
+                res_temp = int(int_2.data.delete_last()) + int(int_1.data.delete_last()) + carry_over
+                if res_temp > 9:
+                    carry_over = 1
+                    res_temp -= 10
+                else:
+                    carry_over = 0
+                res.data.add_first(str(res_temp))
+                res.num_of_digits += 1
+                int_1.num_of_digits -= 1
+                int_2.num_of_digits -= 1
+            for i in range(int_1.num_of_digits):
+                res_temp = int(int_1.data.delete_last()) + carry_over
+                if res_temp > 9:
+                    res_temp -= 10
+                    carry_over = 1
+                else:
+                    carry_over = 0
+                res.data.add_first(str(res_temp))
+                res.num_of_digits += 1
+            if carry_over > 0:
+                res.data.add_first(str(carry_over))
+                res.num_of_digits += 1
+            return res
+
+
+        def __repr__(self):
+            return "".join([item for item in self.data])
+
+
+#################################### Question 3 ###############################
+
+import DoublyLinkedList
+class CompactString:
+    def __init__(self, orig_str):
+        ''' Initializes a CompactString object
+        representing the string given in orig_str'''
+        self.original_str=orig_str
+        self.data = DoublyLinkedList.DoublyLinkedList()
+        if len(orig_str) !=0:
+            curr_ch_tally=0
+            curr_ch=""
+            for ch in orig_str:
+                if curr_ch == ch:
+                    curr_ch_tally += 1
+                elif ch == curr_ch:
+                    curr_ch_tally += 1
+                else:
+                    self.data.add_last((curr_ch, curr_ch_tally))
+                    curr_ch=ch
+                    curr_ch_tally=1
+            self.data.add_last((ch, curr_ch_tally))
+                
+    def __add__(self, other):
+        ''' Creates and returns a CompactString object that
+        represent the concatenation of self and other,
+        also of type CompactString'''
+        compact_s=CompactString("")
+
+        cursor1=self.data.first_node()
+        while cursor1.next is not self.data.trailer:
+            compact_s.data.add_last(cursor1.data)####
+            cursor1 = cursor1.next
+
+        cursor2=other.data.first_node()
+        if cursor1.data[0]==cursor2.data[0]:
+            total_repeats = cursor1.data[1] + cursor2.data[1]
+            compact_s.data.add_last((cursor1.data[0], total_repeats))
+        else:
+            compact_s.data.add_last((cursor1.data))
+            compact_s.data.add_last((cursor2.data))
+
+        cursor2=cursor2.next
+
+        while cursor2.next is not None:
+            compact_s.data.add_last(cursor2.data)
+            cursor2=cursor2.next
+
+        new_compact_str=""
+        cursor = self.data.header
+        while cursor.next is not self.data.trailer:
+            new_compact_str += cursor.next.data[0]*cursor.next.data[1]
+            cursor=cursor.next
+
+        compact_s.orig_str = new_compact_str
+        return compact_s
+
+
+            
+    def __lt__(self, other):
+        ''' returns True if”f self is lexicographically
+        less than other, also of type CompactString'''
+        return self.original_str < other.original_str
+
+    def __le__(self, other):
+        ''' returns True if”f self is lexicographically
+        less than or equal to other, also of type
+        CompactString'''
+        return self.original_str <= other.original_str
+
+    def __gt__(self, other):
+        ''' returns True if”f self is lexicographically
+        greater than other, also of type CompactString'''
+        return self.original_str > other.original_str
+        
+    def __ge__(self, other):
+        ''' returns True if”f self is lexicographically
+        greater than or equal to other, also of type
+        CompactString'''
+        return self.original_str >= other.original_str
+
+    def __repr__(self):
+        ''' Creates and returns the string representation
+        (of type str) of self'''
+
+        s = ""
+        cursor = self.data.header
+        while cursor.next is not self.data.trailer:
+            s += cursor.next.data[0] * cursor.next.data[1]
+            cursor = cursor.next
+
+        return s
+
+def main():
+    s1 = CompactString('aaaaabbbaaac')
+    s2 = CompactString('aaaaaaacccaaaa')
+    s3 = s2 + s1 #in s3’s linked list there will be 6 ’real’ nodes
+    print(s1 < s2) #should return false
+main()
+
+
+#################################### Question 4 ###############################
+
+import DoublyLinkedList
+
+#PART A
+def copy_linked_list(lnk_lst):
+    start = lnk_lst.header.next
+    end = lnk_lst.trailer
+    new_LL = DoublyLinkedList.DoublyLinkedList()
+
+    while start is not end:
+        new_LL.add_last(start.data)
+        start = start.next
+    return new_LL
+
+#PART B
+def deep_copy_linked_list(lnk_lst):
+    start = lnk_lst.header.next
+    end = lnk_lst.trailer
+    new_LL = DoublyLinkedList.DoublyLinkedList()
+
+    while start is not end:
+        if isinstance(start.data, DoublyLinkedList.DoublyLinkedList):
+            new_LL.add_last(deep_copy_linked_list(start.data))
+        else:
+            new_LL.add_last(start.data)
+        start = start.next
+    return new_LL
+
+
+
+def main():
+    lnk_lst1 = DoublyLinkedList.DoublyLinkedList()
+    elem1 = DoublyLinkedList.DoublyLinkedList()
+    elem1.add_last(1)
+    elem1.add_last(2)
+    lnk_lst1.add_last(elem1)
+    elem2 = 3
+    lnk_lst1.add_last(elem2)
+    lnk_lst2 = copy_linked_list(lnk_lst1)
+    e1 = lnk_lst1.first_node()
+    e1_1 = e1.data.first_node()
+    e1_1.data = 10
+    e2 = lnk_lst2.first_node()
+    e2_1 = e2.data.first_node()
+    print (e2_1.data) #10
+
+    lnk_lst1 = DoublyLinkedList.DoublyLinkedList()
+    elem1 = DoublyLinkedList.DoublyLinkedList()
+    elem1.add_last(1)
+    elem1.add_last(2)
+    lnk_lst1.add_last(elem1)
+    elem2 = 3
+    lnk_lst1.add_last(elem2)
+    lnk_lst2 = deep_copy_linked_list(lnk_lst1)
+    e1 = lnk_lst1.first_node()
+    e1_1 = e1.data.first_node()
+    e1_1.data = 10
+    e2 = lnk_lst2.first_node()
+    e2_1 = e2.data.first_node()
+    print(e2_1.data) #1
+
+main()
+
+
+#################################### Question 5 ###############################
+
+import DoublyLinkedList
+
+def merge_linked_lists(srt_lnk_lst1, srt_lnk_lst2):
+
+    def merge_sublists(first_element, second_element, first_trailer, second_trailer, result):
+
+        if first_element==first_trailer or second_element==second_trailer:
+
+            if first_element==first_trailer and second_element==second_trailer:
+                return result
+
+            elif first_element==first_trailer:
+                while second_element != second_trailer:
+                    result.add_last(second_element.data)
+                    second_element = second_element.next
+            else:
+                while first_element is not first_trailer:
+                    result.add_last(first_element.data)
+                    first_element = first_element.next
+
+            return result
+
+        else:
+            if first_element.data>=second_element.data:
+                result.add_last(second_element.data)
+                return merge_sublists(first_element, second_element.next, first_trailer, second_trailer, result)
+
+            else:
+                result.add_last(first_element.data)
+                return merge_sublists(first_element.next, second_element, first_trailer, second_trailer, result)
+
+    result = DoublyLinkedList.DoublyLinkedList()
+    return merge_sublists(srt_lnk_lst1.first_node(), srt_lnk_lst2.first_node(), srt_lnk_lst1.trailer, srt_lnk_lst2.trailer, result)
+
+def main():
+    srt_lnk_lst1=DoublyLinkedList.DoublyLinkedList()
+    srt_lnk_lst2=DoublyLinkedList.DoublyLinkedList()
+
+    srt_lnk_lst1.add_last(1)
+    srt_lnk_lst1.add_last(3)
+    srt_lnk_lst1.add_last(5)
+    srt_lnk_lst1.add_last(6)
+    srt_lnk_lst1.add_last(8)
+
+    srt_lnk_lst2.add_last(2)
+    srt_lnk_lst2.add_last(3)
+    srt_lnk_lst2.add_last(5)
+    srt_lnk_lst2.add_last(10)
+    srt_lnk_lst2.add_last(15)
+    srt_lnk_lst2.add_last(18)
+
+    print(merge_linked_lists(srt_lnk_lst1, srt_lnk_lst2))
+
+#main()
