@@ -1,0 +1,91 @@
+############################### Question 1 #####################################
+
+class Polynomial:
+    def __init__(self, coefficients = None):
+        self.coefficients = coefficients
+        
+     
+    def __sub__(self, other):
+        new_lst = []
+        
+        if (len(self.coefficients) == len(other.coefficients)): #runtime in this block : o(n)
+            for i in range(len(other.coefficients)):
+                new_lst.append(self.coefficients[i] - other.coefficients[i])
+        
+        elif (len(self.coefficients) > len(other.coefficients)): #runtime in this block : o(m) + o(n-m)
+            for i in range(len(other.coefficients)):
+                new_lst.append(self.coefficients[i] - other.coefficients[i])
+                
+            for j in range(len(other.coefficients), len(self.coefficients)):
+                new_lst.append(self.coefficients[j])
+        
+        elif (len(self.coefficients) < len(other.coefficients)): #runtime in this block: o(n) + o(m-n)
+            for i in range(len(self.coefficients)):
+                new_lst.append(self.coefficients[i] - other.coefficients[i])
+                
+            for j in range(len(self.coefficients), len(other.coefficients)):
+                new_lst.append(-1 * other.coefficients[j])
+
+        new_polynomial = Polynomial(new_lst)
+        return new_polynomial
+    
+        
+    def __call__(self, val):
+        result = 0
+        for i in range(len(self.coefficients)):
+            result += self.coefficients[i] * (val ** i)
+        
+        return result
+
+
+############################### Question 2 #####################################
+
+def reverse_vowels(s):
+    lst = list(s)
+    pos = []
+    vowels = 'aeiou'
+    for i in range(len(lst)):
+        if (lst[i] == 'a' or lst[i] == 'e' or lst[i] == 'o' or lst[i] == 'i' or lst[i] == 'u'):
+            pos.append(i)
+   
+    #left and right pointers to reverse 
+    left = 0
+    right = len(pos) - 1
+    
+    for i in range(len(pos)//2):  #reversing the items in those positions
+        lst[pos[left]], lst[pos[right]] = lst[pos[right]], lst[pos[left]]
+        left += 1
+        right -= 1
+        
+    return ''.join(lst)
+
+
+############################### Question 3 #####################################
+
+def factorials_list(n):
+    if n == 1:
+        return [1]
+   
+    else:
+        curr_lst = factorials_list(n-1)
+        new_factorial = n * curr_lst[n-2]
+        curr_lst.append(new_factorial)
+        return curr_lst
+    
+print(factorials_list(7))
+
+
+############################### Question 4 #####################################
+
+
+lst1 = [[1, 2], 3, [4, [5, 6, [7], 8]]]
+
+def deep_copy(nested_lst):
+    if not isinstance(nested_lst,list): #if it is not a nested list
+        return nested_lst
+    
+    else: 
+        new_lst = []
+        for items in nested_lst: 
+            new_lst.append(deep_copy(nested_lst))
+        return new_lst
