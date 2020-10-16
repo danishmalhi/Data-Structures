@@ -1,0 +1,241 @@
+######################### Question 1 ################################
+
+def count_mono_data_subtrees(bin_tree): 
+    def count_mono_data_subtrees_helper(root):
+        node = True    
+        count = 0 
+
+        if root.left is not None: 
+            (left_node, left_val) = count_mono_data_subtrees_helper(root.left)
+
+            if not left_node or root.data != root.left.data: 
+                node = False
+
+            count += left_val 
+
+        if root.right is not None:  
+            (right_node, right_val) = count_mono_data_subtrees_helper(root.right)
+
+            if not right_node or root.data != root.right.data:
+                node = False
+
+            count += right_val 
+
+        if node: # If current Node is also node, then count is increased
+            count += 1
+
+        return (node, count)
+
+    is_node, node_count = count_mono_data_subtrees_helper(bin_tree.root)
+    return node_count
+
+
+
+from LinkedBinaryTree import LinkedBinaryTree
+
+##Node = LinkedBinaryTree.Node
+##rootNode = Node(3)
+##rootNode.left = Node(3)
+##rootNode.left.left = Node(7)
+##rootNode.left.left.left = Node(7)
+##rootNode.right = Node(3)
+##rootNode.right.left = Node(4)
+##rootNode.right.left.right = Node(4)
+##rootNode.right.left.left = Node(4)
+##rootNode.right.right = Node(5)
+##rootNode.right.right.right = Node(8)
+##
+##tree = LinkedBinaryTree(rootNode)
+##print(count_mono_data_subtrees(tree))
+
+
+
+######################### Question 2 ################################
+
+def construct_a_longest_palindrome(numbers_bank):
+    a_queue = ArrayQueue()
+    a_stack = ArrayStack()
+    c_map = ChainingHashTableMap()
+
+    for n in numbers_bank: 
+        if n in c_map:
+            c_map[n] += 1
+        else:
+            c_map[n] = 1
+
+    for num in c_map: 
+        while c_map[num] > 1: 
+            a_queue.enqueue(num)
+            a_stack.push(num)
+            c_map[num] -= 2
+
+        if c_map[num] == 0: 
+            del c_map[num]
+
+    result = []
+    while not a_queue.is_empty():
+        result.append(a_queue.dequeue())
+
+    if not c_map.is_empty():
+        result.append(next(iter(c_map)))
+
+    while not a_stack.is_empty():
+        result.append(a_stack.pop())
+
+    return result
+
+
+
+from ChainingHashTableMap import ChainingHashTableMap
+from ArrayQueue import ArrayQueue
+from ArrayStack import ArrayStack
+
+
+##print(construct_a_longest_palindrome([3, 47, 6, 6, 5, 6, 15, 3, 22, 1, 6, 15]))
+
+
+######################### Question 3 ################################
+
+class LinkedMinHeap:
+
+    class Node:
+        def __init__(self, item):
+            self.item = item
+            self.parent = None
+            self.left = None
+            self.right = None
+
+    class Item:
+        def __init__(self, priority, value=None):
+            self.priority = priority
+            self.value = value
+        
+        def __lt__(self, other):
+            return self.priority < other.priority
+
+    def __init__(self):
+        self.root = None
+        self.size = 0
+
+    def __len__(self):
+        return self.size
+
+    def is_empty(self):
+        return self.size == 0
+
+    def min(self):
+        if self.is_empty():
+            raise Exception("Heap is empty")
+        return self.root.item
+
+    def __find_node_to_insert_under(self):
+        num_levels = 0
+        n = self.size
+        level_size = 1
+
+        while n >= level_size:
+            n = n - level_size
+            level_size *= 2
+            num_levels += 1
+
+        bit_string1 = '{0:b}'.format(n)
+        while len(bit_string1) != num_levels:
+            bit_string1 = '0' + bit_string1
+
+        start = self.root
+        for b in bit_string1[:-1]:
+            if b == '0':
+                start = start.left
+            else:
+                start = start.right
+        return start
+
+    def insert(self, pri, val):
+        new_node = LinkedMinHeap.Node(LinkedMinHeap.Item(pri, val))
+
+        if self.size == 0:
+            self.root = new_node
+            self.size += 1
+            return
+
+        start = self.__find_node_to_insert_under()
+        self.size += 1
+        new_node.parent = start
+        if start.left is not None:
+            start.right = new_node
+        else:
+            start.left = new_node
+
+        while new_node.parent and new_node.item.priority < new_node.parent.item.priority:
+            new_node.item, new_node.parent.item = new_node.parent.item, new_node.item
+            new_node = new_node.parent
+
+    def find_last_node(self):
+        bit_string2 = '{0:b}'.format(self.size)[1:] 
+        start = self.root
+        for b in bit_string2:
+            if b == '0':
+                start = start.left
+            else:
+                start = start.right
+        return start
+
+    def __heapifydown__(self, current):
+        if current.left is None and current.right is None:
+            return
+
+        left_priority = current.left.item.priority if current.left is not None else None
+        right_priority = current.right.item.priority if current.right is not None else None
+
+        if left_priority is None:
+            if current.item.priority > right_priority:
+                current.item, current.right.item = current.right.item, current.item
+                self.__heapifydown__(current.right)
+        elif right_priority is None:
+            if current.item.priority > left_priority:
+                current.item, current.left.item = current.left.item, current.item
+                self.__heapifydown__(current.left)
+        elif left_priority < right_priority and current.item.priority > left_priority:
+            current.item, current.left.item = current.left.item, current.item
+            self.__heapifydown__(current.left)
+        elif left_priority > right_priority and current.item.priority > right_priority:
+            current.item, current.right.item = current.right.item, current.item
+            self.__heapifydown__(current.right)
+
+        
+    def delete_min(self):
+        if self.is_empty():
+            raise Exception("Heap is empty")
+        
+        if self.size == 1:
+            data = self.root.item
+            self.root = None
+            self.size -= 1
+            return data
+
+        last_node = self.find_last_node()
+        result, self.root.item = self.root.item, last_node.item
+        self.size -= 1
+        if last_node.parent.left == last_node:
+            last_node.parent.left = None
+        else:
+            last_node.parent.right = None
+
+        self.__heapifydown__(self.root)
+        return result
+    
+
+##hp = LinkedMinHeap()
+##hp.insert(4, 4)
+##hp.insert(7, 7)
+##hp.insert(2, 2)
+##hp.insert(8, 8)
+##hp.insert(3, 3)
+##hp.insert(10, 10)
+##hp.insert(5, 5)
+##
+##
+##while not hp.is_empty():
+##    item = hp.delete_min()
+##    print((item.priority, item.value))
+
