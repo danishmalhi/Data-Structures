@@ -1,0 +1,496 @@
+################################ Question 1 ##################################
+
+"""
+does not raise exception for empty tree
+OR
+incorrectly raises exception for empty tree
+"""
+
+from LinkedBinaryTree import LinkedBinaryTree
+from ArrayQueue import ArrayQueue
+
+def min_and_max(bin_tree):
+    
+    if bin_tree.root is None:
+        raise EmptyTree("Tree is empty")
+
+    def subtree_min_and_max(subtree_root):
+
+        if subtree_root == None: #base case
+            return
+        else:
+            left=subtree_min_and_max(subtree_root.left)
+            right=subtree_min_and_max(subtree_root.right)
+
+            if left == None and right == None:
+                return (subtree_root.data, subtree_root.data)
+
+            elif left == None:
+                return (min(subtree_root.data, right[0]), max(subtree_root.data, right[1]))
+
+            elif right == None:
+                return (min(subtree_root.data, left[0]), max(subtree_root.data, left[1]))
+            else:
+                return (min(subtree_root.data, left[0], right[0]), max(subtree_root.data, left[1], right[1]))
+
+    return subtree_min_and_max(bin_tree.root)
+
+def main():
+    node_4= LinkedBinaryTree.Node(8)
+    node_5= LinkedBinaryTree.Node(4)
+    node_6= LinkedBinaryTree.Node(5)
+    node_7= LinkedBinaryTree.Node(1)
+    
+    node_3= LinkedBinaryTree.Node(9, node_6, node_7)
+    node_2= LinkedBinaryTree.Node(7, node_4, node_5)
+    node_1= LinkedBinaryTree.Node(2, node_3, None)
+    root= LinkedBinaryTree.Node(3, node_1, node_2)
+
+    tree=LinkedBinaryTree(root)
+
+    print(min_and_max(tree))
+#main()
+    
+
+################################ Question 2 ##################################
+
+from ArrayQueue import ArrayQueue
+
+class LinkedBinaryTree:
+
+    class Node:
+        def __init__(self, data, left=None, right=None):
+            self.data = data
+            self.parent = None
+            self.left = left
+            if (self.left is not None):
+                self.left.parent = self
+            self.right = right
+            if (self.right is not None):
+                self.right.parent = self
+
+    def __init__(self, root=None):
+        self.root = root
+        self.size = self.subtree_count(root)
+
+    def __len__(self):
+        return self.size
+
+    def is_empty(self):
+        return len(self) == 0
+
+    def subtree_count(self, root):
+        if (root is None):
+            return 0
+        else:
+            left_count = self.subtree_count(root.left)
+            right_count = self.subtree_count(root.right)
+            return 1 + left_count + right_count
+
+
+    def sum(self):
+        return self.subtree_sum(self.root)
+
+    def subtree_sum(self, root):
+        if (root is None):
+            return 0
+        else:
+            left_sum = self.subtree_sum(root.left)
+            right_sum = self.subtree_sum(root.right)
+            return root.data + left_sum + right_sum
+
+
+    def height(self):
+        return self.subtree_height(self.root)
+
+    def subtree_height(self, root):
+        if (root.left is None and root.right is None):
+            return 0
+        elif (root.left is  None):
+            return 1 + self.subtree_height(root.right)
+        elif (root.right is  None):
+            return 1 + self.subtree_height(root.left)
+        else:
+            left_height = self.subtree_height(root.left)
+            right_height = self.subtree_height(root.right)
+            return 1 + max(left_height, right_height)
+
+
+    def preorder(self):
+        yield from self.subtree_preorder(self.root)
+
+    def subtree_preorder(self, root):
+        if(root is None):
+            return
+        else:
+            yield root
+            yield from self.subtree_preorder(root.left)
+            yield from self.subtree_preorder(root.right)
+
+
+    def postorder(self):
+        yield from self.subtree_postorder(self.root)
+
+    def subtree_postorder(self, root):
+        if(root is None):
+            return
+        else:
+            yield from self.subtree_postorder(root.left)
+            yield from self.subtree_postorder(root.right)
+            yield root
+
+
+    def inorder(self):
+        yield from self.subtree_inorder(self.root)
+
+    def subtree_inorder(self, root):
+        if(root is None):
+            return
+        else:
+            yield from self.subtree_inorder(root.left)
+            yield root
+            yield from self.subtree_inorder(root.right)
+
+
+    def breadth_first(self):
+        if (self.is_empty()):
+            return
+        line = ArrayQueue.ArrayQueue()
+        line.enqueue(self.root)
+        while (line.is_empty() == False):
+            curr_node = line.dequeue()
+            yield curr_node
+            if (curr_node.left is not None):
+                line.enqueue(curr_node.left)
+            if (curr_node.right is not None):
+                line.enqueue(curr_node.right)
+
+    def leaves_list(self):
+        if self.root == None:
+            return []
+        else:
+            return self.leaves_list_of_sub_tree(self.root) #seemed easier to make a helper that lists leaves give a specific root
+
+    def leaves_list_of_sub_tree(self, root):
+        if root.left == None and root.right == None:
+            return [root.data]
+        
+        if root.left == None:
+            return self.leaves_list_of_sub_tree(root.right)
+        
+        elif root.right == None:
+            return self.leaves_list_of_sub_tree(root.left)
+        
+        else:
+            left = self.leaves_list_of_sub_tree(root.left)
+            right = self.leaves_list_of_sub_tree(root.right)
+            return left + right
+
+
+    def __iter__(self):
+        for node in self.breadth_first():
+            yield node.data
+
+def main():
+    node_4= LinkedBinaryTree.Node(8)
+    node_5= LinkedBinaryTree.Node(4)
+    node_6= LinkedBinaryTree.Node(5)
+    node_7= LinkedBinaryTree.Node(1)
+    
+    node_3= LinkedBinaryTree.Node(9, node_6, node_7)
+    node_2= LinkedBinaryTree.Node(7, node_4, node_5)
+    node_1= LinkedBinaryTree.Node(2, node_3, None)
+    root= LinkedBinaryTree.Node(3, node_1, node_2)
+
+    tree=LinkedBinaryTree(root)
+
+    print(LinkedBinaryTree.leaves_list(tree))
+#main()
+
+
+################################ Question 3 ##################################
+
+from LinkedBinaryTree import LinkedBinaryTree
+
+def is_height_balanced(bin_tree):
+
+    if bin_tree.root == None:
+        raise EmptyTree
+
+    def subtree_is_height_balanced(sub_tree_root, height = None):
+        if sub_tree_root == None:
+            return (True, 0)
+        else:
+            left = subtree_is_height_balanced(sub_tree_root.left)
+            right = subtree_is_height_balanced(sub_tree_root.right)
+
+            if left[0] == True and right[0] == True and abs(left[1] - right[1]) <=1:
+                return (True, max(left[1], right[1]) + 1)
+            else:
+                return (False, max(left[1], right[1]) + 1)
+
+    return subtree_is_height_balanced(bin_tree.root)[0]
+
+def main():
+    node_4= LinkedBinaryTree.Node(8)
+    node_5= LinkedBinaryTree.Node(4)
+    node_6= LinkedBinaryTree.Node(5)
+    node_7= LinkedBinaryTree.Node(1)
+    
+    node_3= LinkedBinaryTree.Node(9, node_6, node_7)
+    node_2= LinkedBinaryTree.Node(7, node_4, node_5)
+    node_1= LinkedBinaryTree.Node(2, node_3, None)
+    root= LinkedBinaryTree.Node(3, node_1, node_2)
+
+    tree=LinkedBinaryTree(root)
+
+    print(is_height_balanced(tree)) #shud be false
+
+    ################################################
+    
+    node_8=LinkedBinaryTree.Node(1)
+    node_7=LinkedBinaryTree.Node(5)
+    
+    node_6=LinkedBinaryTree.Node(4, node_8, None)
+    node_5=LinkedBinaryTree.Node(8, node_7, node_8)
+    node_4=LinkedBinaryTree.Node(9, None, node_7)
+
+    node_3=LinkedBinaryTree.Node(7, node_5, node_6)
+    node_2=LinkedBinaryTree.Node(2, node_4, node_5)
+
+    node_1= LinkedBinaryTree.Node(3, node_2, node_3)
+
+    tree2=  LinkedBinaryTree(node_1)
+
+    print(is_height_balanced(tree2)) #should be True
+    
+#main()
+    
+
+################################ Question 4 ##################################
+
+from ArrayQueue import ArrayQueue
+
+class LinkedBinaryTree:
+
+    class Node:
+        def __init__(self, data, left=None, right=None):
+            self.data = data
+            self.new_par = None
+            self.left = left
+            if (self.left is not None):
+                self.left.new_par = self
+            self.right = right
+            if (self.right is not None):
+                self.right.new_par = self
+
+    def __init__(self, root=None):
+        self.root = root
+        self.size = self.subtree_count(root)
+
+    def __len__(self):
+        return self.size
+
+    def is_empty(self):
+        return len(self) == 0
+
+    def subtree_count(self, root):
+        if (root is None):
+            return 0
+        else:
+            left_count = self.subtree_count(root.left)
+            right_count = self.subtree_count(root.right)
+            return 1 + left_count + right_count
+
+
+    def sum(self):
+        return self.subtree_sum(self.root)
+
+    def subtree_sum(self, root):
+        if (root is None):
+            return 0
+        else:
+            left_sum = self.subtree_sum(root.left)
+            right_sum = self.subtree_sum(root.right)
+            return root.data + left_sum + right_sum
+
+
+    def height(self):
+        return self.subtree_height(self.root)
+
+    def subtree_height(self, root):
+        if (root.left is None and root.right is None):
+            return 0
+        elif (root.left is  None):
+            return 1 + self.subtree_height(root.right)
+        elif (root.right is  None):
+            return 1 + self.subtree_height(root.left)
+        else:
+            left_height = self.subtree_height(root.left)
+            right_height = self.subtree_height(root.right)
+            return 1 + max(left_height, right_height)
+
+
+    def preorder(self):
+        yield from self.subtree_preorder(self.root)
+
+    def subtree_preorder(self, root):
+        if(root is None):
+            return
+        else:
+            yield root
+            yield from self.subtree_preorder(root.left)
+            yield from self.subtree_preorder(root.right)
+
+
+    def postorder(self):
+        yield from self.subtree_postorder(self.root)
+
+    def subtree_postorder(self, root):
+        if(root is None):
+            return
+        else:
+            yield from self.subtree_postorder(root.left)
+            yield from self.subtree_postorder(root.right)
+            yield root
+
+
+    def inorder(self):
+        yield from self.subtree_inorder(self.root)
+
+    def subtree_inorder(self, root):
+        if(root is None):
+            return
+        else:
+            yield from self.subtree_inorder(root.left)
+            yield root
+            yield from self.subtree_inorder(root.right)
+
+
+    def breadth_first(self):
+        if (self.is_empty()):
+            return
+        line = ArrayQueue.ArrayQueue()
+        line.enqueue(self.root)
+        while (line.is_empty() == False):
+            curr_node = line.dequeue()
+            yield curr_node
+            if (curr_node.left is not None):
+                line.enqueue(curr_node.left)
+            if (curr_node.right is not None):
+                line.enqueue(curr_node.right)
+
+    def iterative_inorder(self):
+        sub_root = self.root
+        while sub_root != None:
+            if sub_root.left != None:
+                new_par = sub_root.left
+
+                while new_par.right != sub_root and new_par.right != None:
+                    new_par = new_par.right
+
+                if new_par.right != None:
+                    new_par.right = None
+                    yield sub_root.data
+                    sub_root = sub_root.right
+
+                else:
+                    new_par.right = sub_root
+                    sub_root = sub_root.left
+
+            else:
+                yield sub_root.data
+                sub_root = sub_root.right
+
+
+    def __iter__(self):
+        for node in self.breadth_first():
+            yield node.data
+
+def main():
+    node_4= LinkedBinaryTree.Node(8)
+    node_5= LinkedBinaryTree.Node(4)
+    node_6= LinkedBinaryTree.Node(5)
+    node_7= LinkedBinaryTree.Node(1)
+    
+    node_3= LinkedBinaryTree.Node(9, node_6, node_7)
+    node_2= LinkedBinaryTree.Node(7, node_4, node_5)
+    node_1= LinkedBinaryTree.Node(2, node_3, None)
+    root= LinkedBinaryTree.Node(3, node_1, node_2)
+
+    tree=LinkedBinaryTree(root)
+
+    for item in tree.iterative_inorder():
+        print(item, end=" ")
+    print()
+#main()
+
+
+################################ Question 5 ##################################
+
+import LinkedBinaryTree
+
+def create_expression_tree(prefix_exp_str):
+    token_lst = prefix_exp_str.split(' ')
+    ops = ['+', '-', '*', '/']
+    start_pos = 0
+    int_counter = 0
+    while int_counter != 2:
+        if token_lst[start_pos] not in ops:
+            int_counter += 1
+        else:
+            int_counter = 0
+        start_pos += 1
+    start_pos -= 3
+    return LinkedBinaryTree.LinkedBinaryTree(create_expression_tree_helper(token_lst, start_pos, ops))
+
+def create_expression_tree_helper(prefix_exp, start_pos, ops, last_end_pos=None, subtree=None, is_subtree_left=None):
+    if start_pos < 0:
+        return subtree
+    else:
+        if not subtree:
+            left = LinkedBinaryTree.LinkedBinaryTree.Node(int(prefix_exp[start_pos + 1]))
+            right = LinkedBinaryTree.LinkedBinaryTree.Node(int(prefix_exp[start_pos + 2]))
+            subtree = LinkedBinaryTree.LinkedBinaryTree.Node(prefix_exp[start_pos], left, right)
+            last_end_pos = start_pos + 2
+            if start_pos > 0:
+                if prefix_exp[start_pos - 1] in ops:
+                    start_pos -= 1
+                    is_subtree_left = True
+                else:
+                    start_pos -= 2
+                    is_subtree_left = False
+            else:
+                return subtree
+            return create_expression_tree_helper(prefix_exp, start_pos, ops, last_end_pos, subtree, is_subtree_left)
+        else:
+            if is_subtree_left:
+                right = LinkedBinaryTree.LinkedBinaryTree.Node(int(prefix_exp[last_end_pos+1]))
+                subtree = LinkedBinaryTree.LinkedBinaryTree.Node(prefix_exp[start_pos], subtree, right)
+                last_end_pos += 1
+            else:
+                left = LinkedBinaryTree.LinkedBinaryTree.Node(int(prefix_exp[start_pos+1]))
+                subtree = LinkedBinaryTree.LinkedBinaryTree.Node(prefix_exp[start_pos], left, subtree)
+            if start_pos > 0:
+                if prefix_exp[start_pos - 1] in ops:
+                    start_pos -= 1
+                    is_subtree_left = True
+                else:
+                    start_pos -= 2
+                    is_subtree_left = False
+            else:
+                return subtree
+            return create_expression_tree_helper(prefix_exp, start_pos, ops, last_end_pos, subtree, is_subtree_left)
+
+
+def prefix_to_postfix(prefix_exp_str):
+    def prefix_to_postfix_helper(root):
+        if root is None:
+            return
+        else:
+            yield from prefix_to_postfix_helper(root.left)
+            yield from prefix_to_postfix_helper(root.right)
+            yield root.data
+    tree = create_expression_tree(prefix_exp_str)
+    for item in prefix_to_postfix_helper(tree.root):
+        print(item, end=' ')
