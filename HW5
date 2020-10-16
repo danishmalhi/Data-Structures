@@ -1,0 +1,402 @@
+################################# Question 1 ###############################
+
+def solve(postfix_string_lst):
+    class Stack:
+        def __init__(self):
+            self.elements = []
+
+        def push(self, item):
+            self.elements.append(item)
+
+        def pop(self):
+            return self.elements.pop()
+
+        def size(self):
+            return len(self.elements)
+
+        def is_empty(self):
+            return self.size() == 0
+
+    operation_stack = Stack()
+    operators = ['+', '-', '*', '/', '=']
+
+    for i in postfix_string_lst:
+        if i not in operators:
+            operation_stack.push(char)
+
+        else:
+            operation1 = int(operation_stack.pop())
+            operation2 = int(operation_stack.pop())
+            if i == '+':
+                result = float(operation1 + operation2)
+                operation_stack.push(result)
+            elif i == '-':
+                result = float(operation1 - operation2)
+                operation_stack.push(result)
+            elif i == '*':
+                result = float(operation1 * operation2)
+                if result % 1 == 0:
+                    result = int(result)
+                operation_stack.push(result)
+            elif i == '/':
+                result = float(operation1 / operation2)
+                operation_stack.push(result)
+    return operation_stack.pop()
+
+
+def postfix_calculator():
+    calculate = True
+    variable = {}
+    result = None
+    while calculate is True:
+        postfix_string = input('--> ')
+        str_lst = list(postfix_string.split())
+
+        if postfix_string == 'done()':
+            return None
+        elif len(str_lst) == 1:
+
+            if str_lst[0] in variable.keys():
+                print(variable[str_lst[0]])
+            else:
+                print(postfix_string)
+        elif len(str_lst) > 1:
+            for i in range(len(str_lst)):
+                if str_lst[i] in variable.keys():
+                    str_lst[i] = variable[str_lst[i]]
+
+            if str_lst[1] == '=':
+                print(str_lst[0])
+                var = postfix_string[0]
+                solve_lst = str_lst[2:]
+                result = solve(solve_lst)
+                if result % 1 == 0:
+                    result = int(result)
+                variable[var] = result
+
+            else:
+
+                result = solve(str_lst)
+                if result % 1 == 0:
+                    result = int(result)
+                print(result)
+
+################################# Question 2 ###############################
+
+import ArrayStack
+
+
+class MaxStack:
+    def __init__(self):
+        self.data = ArrayStack.ArrayStack()
+        self.size = 0
+
+    def is_empty(self):
+        return self.size == 0
+
+    def __len__(self):
+        return self.size
+
+    def push(self, e):
+        if self.is_empty()==True:
+            self.size += 1
+            return self.data.push((e, e))
+        
+        elif e > self.data.top()[1]:
+            self.size += 1
+            return self.data.push((e, e))
+
+        else:
+            self.size += 1
+            return self.data.push((e, self.data.top()[1]))
+
+    def top(self):
+        if self.is_empty():
+            raise Exception("maxS is empty")
+        return self.data.top()[0]
+
+    def pop(self):
+        if self.is_empty():
+            raise Exception("maxS is empty")
+        self.size -= 1
+        return self.data.pop()[0]
+
+    def max(self):
+        if self.is_empty():
+            raise Exception("maxS is empty")
+        return self.data.top()[1]
+
+def main():
+    maxS = MaxStack()
+    print(maxS.push(3))#none
+    print(maxS.push(1))#none
+    print(maxS.push(6))#none
+    print(maxS.push(4))#none
+    print(maxS.max())  #6
+    print(maxS.pop())  #4
+    print(maxS.pop())  #6
+    print(maxS.max())  #3
+
+#main()
+
+
+################################# Question 3 ###############################
+
+import ArrayStack
+import ArrayDeque
+
+class MidStack:
+    def __init__(self):
+        self.size = 0
+        self.array_stack = ArrayStack.ArrayStack()
+        self.array_deque = ArrayDeque.ArrayDeque()
+        
+    def is_empty(self):
+        return self.size == 0
+
+    def __len__(self):
+        return self.size
+
+    def push(self, e):
+        self.size += 1
+        return self.array_deque.enqueue_last(e)
+
+    def top(self):
+        if self.is_empty():
+            raise Exception('Stack is empty')
+        return self.array_deque.last()
+
+    def pop(self):
+        if self.is_empty():
+            raise Exception('Stack is empty')
+        self.size -= 1
+        return self.array_deque.dequeue_last()
+
+    def mid_push(self, e):
+        if self.is_empty(): #CASE 1 - if empty add normally
+            self.array_deque.enqueue_first(e)
+
+        elif self.size == 1: #CASE 2 - if only one element, add at end
+            self.array_deque.enqueue_last(e)
+
+        elif self.__len__() % 2 == 0: #CASE 3 - if even num of elements, e in middle
+            for i in range(self.__len__() // 2):
+                self.array_stack.push(self.array_deque.dequeue_first())
+
+            self.array_deque.enqueue_first(e)
+            for i in range(self.array_stack.__len__()):
+                self.array_deque.enqueue_first(self.array_stack.pop())
+
+        else: #CASE 4 - if odd num of elements, placed at (n+1)/2  element
+            for i in range((self.__len__() // 2) + 1):
+                self.array_stack.push(self.array_deque.dequeue_first())
+
+            self.array_deque.enqueue_first(e)
+            for i in range(self.array_stack.__len__()):
+                self.array_deque.enqueue_first(self.array_stack.pop())
+
+        self.size += 1
+        return
+
+def main():
+    midS1 = MidStack()
+    midS1.push(2)
+    midS1.push(4)
+    midS1.push(6)
+    midS1.push(8)
+    midS1.mid_push(10)
+    print(midS1.pop()) #8
+    print(midS1.pop()) #6
+    print(midS1.pop()) #10
+    print(midS1.pop()) #4
+    print(midS1.pop()) #2
+
+    midS2 = MidStack()
+    midS2.push(2)
+    midS2.push(4)
+    midS2.push(6)
+    midS2.push(8)
+    midS2.push(10)
+    midS2.mid_push(12)
+    print(midS2.pop()) #10
+    print(midS2.pop()) #8
+    print(midS2.pop()) #12
+    print(midS2.pop()) #6
+    print(midS2.pop()) #4
+    print(midS2.pop()) #2
+
+main()
+
+
+################################# Question 4 ###############################
+
+class Empty(Exception):
+    pass
+
+class ArrayStack:
+    def __init__(self):
+        self.data = []
+
+    def __len__(self):
+        return len(self.data)
+
+    def is_empty(self):
+        return len(self) == 0
+
+    def push(self, val):
+        self.data.append(val)
+
+    def top(self):
+        if (self.is_empty()):
+            raise Empty("Stack is empty")
+        return self.data[-1]
+
+    def pop(self):
+        if (self.is_empty()):
+            raise Empty("Stack is empty")
+        return self.data.pop()
+
+class Queue:
+    def __init__(self):
+        self.first_stack = ArrayStack()
+        self.second_stack = ArrayStack()
+        self.number_of_element = 0
+
+    def __len__(self):
+        return self.number_of_element
+
+    def is_empty(self):
+        return self.number_of_element == 0
+
+    def enqueue (self, elem):
+        self.first_stack.push(elem)
+        self.number_of_element += 1
+
+    def dequeue (self):
+        if self.first_stack.is_empty() and self.second_stack.is_empty():
+            raise Empty('NewQueue is Empty')
+        if self.second_stack.is_empty():
+            while not self.first_stack.is_empty():
+                elem = self.first_stack.pop()
+                self.second_stack.push(elem)
+        self.number_of_element -= 1
+        return self.second_stack.pop()
+
+    def first (self):
+        if self.first_stack.is_empty() and self.second_stack.is_empty():
+            raise Empty('NewQueue is Empty')
+        if self.second_stack.is_empty():
+            while not self.first_stack.is_empty():
+                elem = self.first_stack.pop()
+                self.second_stack.push(elem)
+        return self.second_stack.top()
+
+
+################################# Question 5 ###############################
+
+class Empty(Exception):
+    pass
+
+class ArrayStack:
+    def __init__(self):
+        self.data = []
+
+    def __len__(self):
+        return len(self.data)
+
+    def is_empty(self):
+        return len(self) == 0
+
+    def push(self, val):
+        self.data.append(val)
+
+    def top(self):
+        if (self.is_empty()):
+            raise Empty("Stack is empty")
+        return self.data[-1]
+
+    def pop(self):
+        if (self.is_empty()):
+            raise Empty("Stack is empty")
+        return self.data.pop()
+
+class ArrayQueue:
+    initial_cap = 10
+
+    def __init__(self):
+        self.data = [None] * ArrayQueue.initial_cap
+        self.number_of_element = 0
+        self.front_index = 0
+
+    def __len__(self):
+        return self.number_of_element
+
+    def is_empty(self):
+        return (self.number_of_element == 0)
+
+    def enqueue(self, elem):
+        if (self.number_of_element == len(self.data)):
+            self.resize(2 * len(self.data))
+        back_index = (self.front_index + self.number_of_element) % len(self.data)
+        self.data[back_index] = elem
+        self.number_of_element += 1
+
+    def dequeue(self):
+        if (self.is_empty()):
+            raise Empty("Queue is empty")
+        value = self.data[self.front_index]
+        self.data[self.front_index] = None
+        self.front_index = (self.front_index + 1) % len(self.data)
+        self.number_of_element -= 1
+        if(self.number_of_element < len(self.data) // 4):
+            self.resize(len(self.data) // 2)
+        return value
+
+    def first(self):
+        if self.is_empty():
+            raise Empty("Queue is empty")
+        return self.data[self.front_index]
+
+    def resize(self, new_cap):
+        old_data = self.data
+        self.data = [None] * new_cap
+        old_index = self.front_index
+        for new_index in range(self.number_of_element):
+            self.data[new_index] = old_data[old_index]
+            old_index = (old_index + 1) % len(old_data)
+        self.front_index = 0
+
+import copy
+import math
+
+def permutation(lst):
+    res = ArrayQueue()
+    make = ArrayStack()
+    permutations_lst = []
+    num_of_permutations = math.factorial(len(lst))
+    print(num_of_permutations)
+    for i in lst:
+        make.push(i)
+
+    for i in range (num_of_permutations):
+        print('Running',i)
+        print (len(res))
+        if res.is_empty():
+            res.enqueue(make.pop())
+        if not make.is_empty():
+            for i in range (len(make)):
+                s = make.pop()
+                if s < res.first():
+                    for i in range (len(res)):
+                        make.push(res.dequeue())
+                    make.push(s)
+                    new = copy.deepcopy(make)
+                    res_lst = [new.pop() for i in range (len(new))]
+                    permutations_lst.append(res)
+                    print('Made it')
+                    print(make.data)
+                else:
+                    res.enqueue(s)
+            else:
+                pass
+    return permutations_lst
